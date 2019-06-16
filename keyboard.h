@@ -1,7 +1,18 @@
 #ifndef KEYBOARD_MAP_H
 #define KEYBOARD_MAP_H
 
-#define KEYBOARD_DATA 0x60
+#include <linux/module.h>
+#include <linux/kernel.h>
+#include <linux/debugfs.h>
+#include <linux/fs.h>
+#include <linux/wait.h>
+#include <linux/interrupt.h>
+#include <linux/miscdevice.h>
+
+#define KEYBOARD_DATA		0x60
+#define KBD_IRQ			1
+#define KBD_SCANCODE_MASK	0x7f
+#define KBD_STATUS_MASK		0x80
 
 unsigned char keyboard_map[128] =
 {

