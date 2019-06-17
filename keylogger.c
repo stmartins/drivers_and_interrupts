@@ -63,18 +63,18 @@ t_keylst		*init_node(t_keylst *node)
 
 int			add_to_list(unsigned char scancode)
 {
-	t_keylst	*tmp_lst;
-	t_keylst	*new_node;
+	t_keylst	*tmp_lst = NULL;
+	t_keylst	*new_node = NULL;
 
 	if (!(new_node = (t_keylst *)kmalloc(sizeof(t_keylst), GFP_KERNEL)))
 		return 1;
-	new_node = init_node(k_lst);
+	new_node = init_node(new_node);
 	if (k_lst == NULL)
 	{
 		printk(KERN_INFO "list est NULL\n");
 		printk(KERN_INFO "premier malloc a marcheeeeeeeeeeee\n");
 		k_lst = new_node;
-		k_lst->next = NULL;
+		//k_lst->next = NULL;
 	}
 	else
 	{
@@ -82,7 +82,7 @@ int			add_to_list(unsigned char scancode)
 		tmp_lst = k_lst;
 		tmp_lst = find_last_list_element(tmp_lst);
 		tmp_lst = new_node;
-		tmp_lst->next = NULL;
+		//tmp_lst->next = NULL;
 	}
 	printk(KERN_INFO "[%d]\n", scancode & KBD_STATUS_MASK);
 	return 0;
