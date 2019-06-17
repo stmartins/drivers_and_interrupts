@@ -20,7 +20,6 @@ typedef struct			s_keylst
 {
 	unsigned char		key;
 	unsigned char		state;
-	char			value;
 	char			name[25];
 	struct timespec		time;
 	struct s_keylst		*next;
