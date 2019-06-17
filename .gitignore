@@ -1,5 +1,4 @@
-.key*
+.keylogger.*
 *.ko
-*.mod
-module*
-*.o*
+Modules.*
+*.o
