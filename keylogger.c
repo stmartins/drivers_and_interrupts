@@ -41,7 +41,7 @@ t_keylst		*find_last_list_element(t_keylst *full_lst)
 	t_keylst	*tmp_lst;
 	int	i = 0;
 	tmp_lst = full_lst;
-	while (tmp_lst != NULL)
+	while (tmp_lst->next != NULL)
 	{
 		printk(KERN_INFO "i -> [%d]", i);
 		tmp_lst = tmp_lst->next;
@@ -81,7 +81,7 @@ int			add_to_list(unsigned char scancode)
 		printk(KERN_INFO "dans le else du  malloc qui a marcheeeeeeeeeeee\n");
 		tmp_lst = k_lst;
 		tmp_lst = find_last_list_element(tmp_lst);
-		tmp_lst = new_node;
+		tmp_lst->next = new_node;
 		//tmp_lst->next = NULL;
 	}
 	printk(KERN_INFO "[%d]\n", scancode & KBD_STATUS_MASK);
