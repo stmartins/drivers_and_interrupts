@@ -39,14 +39,10 @@ static struct miscdevice	key_dev = {
 t_keylst		*find_last_list_element(t_keylst *full_lst)
 {
 	t_keylst	*tmp_lst;
-	int	i = 0;
+	
 	tmp_lst = full_lst;
 	while (tmp_lst->next != NULL)
-	{
-		printk(KERN_INFO "i -> [%d]", i);
 		tmp_lst = tmp_lst->next;
-		i++;
-	}
 	return tmp_lst;
 }
 
@@ -70,19 +66,12 @@ int			add_to_list(unsigned char scancode)
 		return 1;
 	new_node = init_node(new_node);
 	if (k_lst == NULL)
-	{
-		printk(KERN_INFO "list est NULL\n");
-		printk(KERN_INFO "premier malloc a marcheeeeeeeeeeee\n");
 		k_lst = new_node;
-		//k_lst->next = NULL;
-	}
 	else
 	{
-		printk(KERN_INFO "dans le else du  malloc qui a marcheeeeeeeeeeee\n");
 		tmp_lst = k_lst;
 		tmp_lst = find_last_list_element(tmp_lst);
 		tmp_lst->next = new_node;
-		//tmp_lst->next = NULL;
 	}
 	printk(KERN_INFO "[%d]\n", scancode & KBD_STATUS_MASK);
 	return 0;
