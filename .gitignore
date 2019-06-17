@@ -1,4 +1,7 @@
 .keylogger.*
+keylogger.mod.*
 *.ko
-Modules.*
+Module.*
+modules.*
 *.o
+.tmp_verions
