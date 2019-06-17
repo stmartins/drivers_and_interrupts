@@ -1,1 +1,5 @@
 .key*
+*.ko
+*.mod
+module*
+*.o*
