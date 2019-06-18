@@ -4,4 +4,4 @@ keylogger.mod.*
 Module.*
 modules.*
 *.o
-.tmp_verions
+.tmp_versions
