@@ -29,11 +29,6 @@ typedef struct			s_keylst
 	struct s_keylst		*next;
 }				t_keylst;
 
-//t_keylst		*init_node(t_keylst *node, unsigned char scancode);
-/*
-int		browse_linked_list(t_keylst *lst, char *buffer, loff_t **offset, size_t len);
-int		add_to_list(unsigned char scancode);
-*/
 static const unsigned char	*keyboard_name[128] = {
 	0,				// undefined
 	"escape",		// escape
