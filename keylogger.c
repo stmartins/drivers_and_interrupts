@@ -12,10 +12,10 @@ void		display_list_element(t_keylst *node)
 {
 	char	message[128] = {0};
 
-	sprintf(message, "(%ld:%ld:%ld) ", (node->time.tv_sec / 3600) % 24, \
-			(node->time.tv_sec / 60) % 60, node->time.tv_sec % 60);
-	strcat(message, node->name);
-	printk(KERN_INFO "[%s]\n", message);
+	sprintf(message, "%ld:%ld:%ld %s (%d) %s", (node->time.tv_sec / 3600) % 24, \
+			(node->time.tv_sec / 60) % 60, node->time.tv_sec % 60, \
+		       	node->name, node->key, node->state ? "Released" : "Pressed");
+	printk(KERN_INFO "%s\n", message);
 }
 
 int		browse_linked_list(t_keylst *lst)
