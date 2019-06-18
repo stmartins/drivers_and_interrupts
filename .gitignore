@@ -1,5 +1,6 @@
 .keylogger.*
 .keyboard.*
+.manage_list.*
 keylogger.mod.*
 *.ko
 Module.*

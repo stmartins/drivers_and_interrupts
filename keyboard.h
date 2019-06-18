@@ -1,5 +1,5 @@
-#ifndef KEYBOARD_MAP_H
-#define KEYBOARD_MAP_H
+#ifndef KEYBOARD_H
+#define KEYBOARD_H
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -11,6 +11,8 @@
 #include <linux/time.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
+
+#include "list.h"
 
 #define KEYBOARD_DATA		0x60
 #define KBD_IRQ			1
@@ -26,10 +28,10 @@ typedef struct			s_keylst
 	struct timespec		time;
 	struct s_keylst		*next;
 }				t_keylst;
-
+/*
 int		browse_linked_list(t_keylst *lst, char *buffer, loff_t **offset, size_t len);
 int		add_to_list(unsigned char scancode);
-
+*/
 static const unsigned char	*keyboard_name[128] = {
 	0,				// undefined
 	"escape",		// escape
