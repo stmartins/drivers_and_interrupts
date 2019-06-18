@@ -10,6 +10,7 @@
 #include <linux/miscdevice.h>
 #include <linux/time.h>
 #include <linux/slab.h>
+#include <linux/uaccess.h>
 
 #define KEYBOARD_DATA		0x60
 #define KBD_IRQ			1
