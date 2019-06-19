@@ -1,1 +1,0 @@
-cmd_/root/github/drivers_and_interrupts/keylog.ko := ld -r -m elf_x86_64  -z max-page-size=0x200000 -T ./scripts/module-common.lds  --build-id  -o /root/github/drivers_and_interrupts/keylog.ko /root/github/drivers_and_interrupts/keylog.o /root/github/drivers_and_interrupts/keylog.mod.o ;  true

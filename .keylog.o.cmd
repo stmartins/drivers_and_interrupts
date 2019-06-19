@@ -1,1 +1,0 @@
-cmd_/root/github/drivers_and_interrupts/keylog.o := ld -m elf_x86_64  -z max-page-size=0x200000    -r -o /root/github/drivers_and_interrupts/keylog.o /root/github/drivers_and_interrupts/keylogger.o /root/github/drivers_and_interrupts/manage_list.o 
