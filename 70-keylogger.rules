@@ -1,0 +1,2 @@
+SUBSYSTEM=="input", SUBSYSTEMS=="usb", ACTION=="add", RUN+="/sbin/insmod /root/github/drivers_and_interrupts/keylog.ko"
+SUBSYSTEM=="input", SUBSYSTEMS=="usb", ACTION=="remove", RUN+="/sbin/rmmod /root/github/drivers_and_interrupts/keylog"

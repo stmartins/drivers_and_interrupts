@@ -1,4 +1,5 @@
 #include "keyboard.h"
+#include "list.h"
 
 extern t_keylst	*k_lst;
 extern int	read_done;
@@ -8,9 +9,9 @@ void		display_list_element(t_keylst *node, char *buffer, loff_t **offset, size_t
 	char	message[128] = {0};
 	int	msg_len;
 
-	sprintf(message, "%ld:%ld:%ld %s (%d) %s\n", (node->time.tv_sec / 3600) % 24, \
+	sprintf(message, "%s%ld:%ld:%ld %s (%d) %s%s\n",node->state ? RED : GREEN, (node->time.tv_sec / 3600) % 24, \
 			(node->time.tv_sec / 60) % 60, node->time.tv_sec % 60, \
-		       	node->name, node->key, node->state ? "Released" : "Pressed");
+		       	node->name, node->key, node->state ? "Released" : "Pressed", RESET);
 	msg_len = strlen(message);
 	if (len > msg_len)
 	{
