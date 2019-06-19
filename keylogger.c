@@ -1,7 +1,7 @@
 #include "keyboard.h"
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("stmartin");
+MODULE_AUTHOR("stmartin <phaninho@live.fr>");
 MODULE_DESCRIPTION("Module keylog");
 
 t_keylst	*k_lst = NULL;
