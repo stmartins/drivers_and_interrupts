@@ -11,6 +11,7 @@
 #include <linux/time.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
+//#include <linux/string.h>
 
 #define KEYBOARD_DATA		0x60
 #define KBD_IRQ			1
@@ -29,7 +30,7 @@ typedef struct			s_keylst
 	struct s_keylst		*next;
 }				t_keylst;
 
-int		browse_linked_list(t_keylst *lst, char *buffer, loff_t **offset, size_t len);
+int		browse_linked_list(t_keylst *lst, char *buffer, loff_t **offset, size_t len, int key_or_log);
 int		add_to_list(unsigned char scancode);
 
 #endif

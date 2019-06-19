@@ -13,7 +13,7 @@ static const unsigned char	*keyboard_name[128] = {
 	"tab",			// tab
 	"q","w","e","r","t","y","u","i","o","p","[","]","enter",
 	"left ctrl",	// Ctrl
-	"a","s","d","f","g","h","j","k","l",";","\"","`",
+	"a","s","d","f","g","h","j","k","l",";","'","`",
 	"left shift",	// Left shift
 	"\\","z","x","c","v","b","n","m",",",".","/",
 	"right shift",	// Right shift
