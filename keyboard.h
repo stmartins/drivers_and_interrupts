@@ -17,6 +17,8 @@
 #define KBD_SCANCODE_MASK	0x7f
 #define KBD_STATUS_MASK		0x80
 
+#define PATH "keylog"
+//#define FILE_NAME "/tmp/keylog"
 
 typedef struct			s_keylst
 {
